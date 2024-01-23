@@ -5,7 +5,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
-const fetchTransactions = async (address, lastScanBlock) => {
+const fetchTransactions = async (address, lastScanBlock, retryCount = 0) => {
   const transactions = [];
   const pageSize = 500;
   let currentPage = 1;

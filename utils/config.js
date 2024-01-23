@@ -8,7 +8,7 @@ const config = {
     return process.env.DEV_ENV;
   },
   get port() {
-    return process.env.PORT;
+    return process.env.PORT || 5000;
   },
   get mongoUri() {
     return process.env.MONGO_URI;
