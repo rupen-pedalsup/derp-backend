@@ -46,15 +46,27 @@ const scanTransactions = async (req, res) => {
     user.score += transactionData.score;
     await user.save();
 
-    const createTransaction = await Transaction.create({
-      user: user._id,
-      txHash: transactionData.transactionHash,
-    });
+    let transaction = await Transaction.findOneAndUpdate(
+      { user: user._id },
+      {
+        $push: {
+          txHash: transactionData.transactionHash,
+        },
+      },
+      { new: true }
+    );
+
+    if (!transaction) {
+      transaction = await Transaction.create({
+        user: user._id,
+        txHash: transactionData.transactionHash,
+      });
+    }
 
     let response = {
       status: true,
       message: "Transactions fetched successfully",
-      data: { transactions, transactionDataHash: createTransaction },
+      data: { transactions, transactionDataHash: transaction },
     };
 
     return res.status(httpStatus.OK).send(response);

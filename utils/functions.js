@@ -46,7 +46,7 @@ const fetchTransactions = async (address, lastScanBlock, retryCount = 0) => {
         } seconds...`
       );
       await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-      return getETHPrice(timestamp, token_id, retryCount + 1);
+      return fetchTransactions(address, lastScanBlock, retryCount + 1);
     } else {
       throw error; // Rethrow the error after max retries
     }
