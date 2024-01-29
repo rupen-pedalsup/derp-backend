@@ -3,12 +3,17 @@ const { tableName } = require("../../utils/table-name");
 
 const airdropSchema = mongoose.Schema(
   {
-    name: {
+    airdropName: {
       type: String,
       required: true,
       trim: true,
     },
-    symbol: {
+    tokenName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    tokenSymbol: {
       type: String,
       required: true,
     },
@@ -16,12 +21,27 @@ const airdropSchema = mongoose.Schema(
       type: String,
       default: "",
     },
-    contractAddress: {
+    description: {
+      type: String,
+      default: "",
+    },
+    tokenAddress: {
       type: String,
       required: true,
-      unique: true,
     },
     totalTokens: {
+      type: String,
+      required: true,
+    },
+    minTokenPerWallet: {
+      type: String,
+      required: true,
+    },
+    maxTokenPerWallet: {
+      type: String,
+      required: true,
+    },
+    chain: {
       type: String,
       required: true,
     },

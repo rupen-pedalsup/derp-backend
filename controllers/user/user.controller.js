@@ -71,4 +71,28 @@ const createUser = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, createUser };
+const get = async (req, res) => {
+  try {
+    const users = await User.find();
+
+    let response = {
+      status: true,
+      message: "Users fetched successfully",
+      data: users,
+    };
+
+    return res.status(httpStatus.OK).send(response);
+  } catch (err) {
+    console.log(err);
+
+    let response = {
+      status: false,
+      message: "something went wrong",
+      data: err.message,
+    };
+
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).send(response);
+  }
+};
+
+module.exports = { loginUser, createUser, get };

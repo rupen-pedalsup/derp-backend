@@ -4,7 +4,7 @@ const { Airdrop } = require("../../models/user");
 const post = async (req, res) => {
   try {
     const isExist = await Airdrop.findOne({
-      contractAddress: req.body.contractAddress,
+      tokenAddress: req.body.tokenAddress,
     });
 
     if (isExist) {
@@ -14,7 +14,7 @@ const post = async (req, res) => {
         data: null,
       };
 
-      return res.status(httpStatus.CONFLICT).send(response);
+      return res.status(httpStatus.OK).send(response);
     }
 
     const airdrop = await Airdrop.create(req.body);
