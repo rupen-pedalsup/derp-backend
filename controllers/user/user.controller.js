@@ -8,7 +8,7 @@ const loginUser = async (req, res) => {
     if (user) {
       let response = {
         status: true,
-        message: "Login successfull",
+        message: "Login successful",
         data: user,
       };
 
