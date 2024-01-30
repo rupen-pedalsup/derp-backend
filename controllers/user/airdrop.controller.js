@@ -17,6 +17,10 @@ const post = async (req, res) => {
       return res.status(httpStatus.OK).send(response);
     }
 
+    req.body.totalTokens = req.body.totalTokens.toString();
+    req.body.minTokenPerWallet = req.body.minTokenPerWallet.toString();
+    req.body.maxTokenPerWallet = req.body.maxTokenPerWallet.toString();
+
     const airdrop = await Airdrop.create(req.body);
 
     let response = {
@@ -65,6 +69,16 @@ const get = async (req, res) => {
 
 const put = async (req, res) => {
   try {
+    if (req.body.totalTokens) {
+      req.body.totalTokens = req.body.totalTokens.toString();
+    }
+    if (req.body.minTokenPerWallet) {
+      req.body.minTokenPerWallet = req.body.minTokenPerWallet.toString();
+    }
+    if (req.body.maxTokenPerWallet) {
+      req.body.maxTokenPerWallet = req.body.maxTokenPerWallet.toString();
+    }
+
     const airdrop = await Airdrop.findByIdAndUpdate(
       req.params.id,
       { $set: req.body },
