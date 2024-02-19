@@ -18,6 +18,14 @@ const userSchema = mongoose.Schema(
       // Block At 1672531200 (1 Jan 2023) -> 8235441(Block Number)
       default: 8235441,
     },
+    solanaAddress: {
+      type: String,
+      default: null,
+    },
+    cosmosAddress: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

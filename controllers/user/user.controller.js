@@ -95,4 +95,41 @@ const get = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, createUser, get };
+const put = async (req, res) => {
+  try {
+    console.log(req.body);
+    if (req.body.solanaAddress || req.body.cosmosAddress) {
+      const user = await User.findOneAndUpdate(
+        { address: req.params.address },
+        req.body,
+        { new: true }
+      );
+
+      let response = {
+        status: true,
+        message: "User updated successfully",
+        data: user,
+      };
+
+      return res.status(httpStatus.OK).send(response);
+    }
+
+    return res.status(httpStatus.BAD_REQUEST).send({
+      status: false,
+      message: "Please provide solanaAddress or cosmosAddress",
+      data: null,
+    });
+  } catch (err) {
+    console.log(err);
+
+    let response = {
+      status: false,
+      message: "something went wrong",
+      data: err.message,
+    };
+
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).send(response);
+  }
+};
+
+module.exports = { loginUser, createUser, get, put };
