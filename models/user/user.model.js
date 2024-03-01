@@ -26,6 +26,10 @@ const userSchema = mongoose.Schema(
       type: String,
       default: null,
     },
+    btcAddress: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

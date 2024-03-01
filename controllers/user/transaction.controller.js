@@ -83,4 +83,80 @@ const scanTransactions = async (req, res) => {
   }
 };
 
-module.exports = { scanTransactions };
+const scanBtcTransaction = async (req, res) => {
+  try {
+    if (!req.body.btcAddress) {
+      let response = {
+        status: false,
+        message: "BTC address is required",
+        data: null,
+      };
+
+      return res.status(httpStatus.BAD_REQUEST).send(response);
+    }
+
+    const resData = await fetch(
+      `https://api.blockcypher.com/v1/btc/test3/txs/${req.body.hash}?limit=50&includeHex=true`
+    );
+    const resJson = await resData.json();
+
+    const to = resJson.addresses[0];
+    const from = resJson.addresses[1];
+
+    if (from !== req.body.btcAddress) {
+      let response = {
+        status: false,
+        message: "Invalid transaction",
+        data: null,
+      };
+
+      return res.status(httpStatus.OK).send(response);
+    }
+
+    const currentPrice = await fetch(
+      "https://api.coindesk.com/v1/bpi/currentprice.json"
+    );
+    const currentPriceJson = await currentPrice.json();
+    const price = resJson.total * currentPriceJson.bpi.USD.rate_float;
+
+    const totalPrice = resJson.total * price;
+
+    if (totalPrice >= req.body.amount) {
+      await User.findOneAndUpdate(
+        { address: req.params.address },
+        {
+          btcAddress: req.body.btcAddress,
+        },
+        { new: true }
+      );
+
+      let response = {
+        status: true,
+        message: "Transaction validated",
+        data: resJson,
+      };
+
+      return res.status(httpStatus.OK).send(response);
+    }
+
+    let response = {
+      status: false,
+      message: "Invalid transaction",
+      data: null,
+    };
+
+    return res.status(httpStatus.OK).send(response);
+  } catch (err) {
+    console.log(err);
+
+    let response = {
+      status: false,
+      message: "Something went wrong",
+      data: null,
+    };
+
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).send(response);
+  }
+};
+
+module.exports = { scanTransactions, scanBtcTransaction };
