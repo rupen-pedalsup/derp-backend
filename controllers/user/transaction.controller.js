@@ -4,6 +4,7 @@ const {
   proceedTransaction,
   fetchTransactions,
 } = require("../../utils/functions");
+const { fetchCurrentPrice } = require("../../utils/btc");
 
 const scanTransactions = async (req, res) => {
   try {
@@ -85,77 +86,88 @@ const scanTransactions = async (req, res) => {
 
 const scanBtcTransaction = async (req, res) => {
   try {
-    if (!req.body.btcAddress) {
-      let response = {
+    const { btcAddress, hash, amount } = req.body;
+    if (!btcAddress) {
+      return res.status(httpStatus.BAD_REQUEST).send({
         status: false,
         message: "BTC address is required",
         data: null,
-      };
+      });
+    }
 
-      return res.status(httpStatus.BAD_REQUEST).send(response);
+    const user = await User.findOne({ btcAddress });
+    if (user) {
+      return res.status(httpStatus.BAD_REQUEST).send({
+        status: false,
+        message: "BTC address already exists",
+        data: null,
+      });
     }
 
     const resData = await fetch(
-      `https://api.blockcypher.com/v1/btc/test3/txs/${req.body.hash}?limit=50&includeHex=true`
+      `https://api.blockcypher.com/v1/btc/test3/txs/${hash}?limit=50&includeHex=true`
     );
-    const resJson = await resData.json();
+    const transaction = await resData.json();
 
-    const to = resJson.addresses[0];
-    const from = resJson.addresses[1];
-
-    if (from !== req.body.btcAddress) {
-      let response = {
+    if (transaction.error) {
+      return res.status(httpStatus.OK).send({
         status: false,
-        message: "Invalid transaction",
+        message: transaction.error,
         data: null,
-      };
-
-      return res.status(httpStatus.OK).send(response);
+      });
     }
 
-    const currentPrice = await fetch(
-      "https://api.coindesk.com/v1/bpi/currentprice.json"
+    let fromAddressValid = transaction.inputs.some((input) =>
+      input.addresses.includes(btcAddress)
     );
-    const currentPriceJson = await currentPrice.json();
-    const price = resJson.total * currentPriceJson.bpi.USD.rate_float;
-
-    const totalPrice = resJson.total * price;
-
-    if (totalPrice >= req.body.amount) {
-      await User.findOneAndUpdate(
-        { address: req.params.address },
-        {
-          btcAddress: req.body.btcAddress,
-        },
-        { new: true }
-      );
-
-      let response = {
-        status: true,
-        message: "Transaction validated",
-        data: resJson,
-      };
-
-      return res.status(httpStatus.OK).send(response);
+    if (!fromAddressValid) {
+      return res.status(httpStatus.OK).send({
+        status: false,
+        message: "Invalid wallet address",
+        data: null,
+      });
     }
 
-    let response = {
-      status: false,
-      message: "Invalid transaction",
-      data: null,
-    };
+    let transactionValidated = false;
+    for (const output of transaction.outputs) {
+      if (output.addresses.includes("2N8Lnz36B1tQ6in3R6LsKsvdomtch5GHJ7p")) {
+        const btcValue = output.value / 100000000;
+        console.log("🚀 ~ scanBtcTransaction ~ btcValue:", btcValue);
 
-    return res.status(httpStatus.OK).send(response);
+        const currentBtcPrice = await fetchCurrentPrice();
+
+        const totalPrice = btcValue * currentBtcPrice;
+        console.log("🚀 ~ scanBtcTransaction ~ totalPrice:", totalPrice);
+        console.log("🚀 ~ scanBtcTransaction ~ amount:", amount);
+
+        if (totalPrice >= amount) {
+          transactionValidated = true;
+          break; // Exit the loop early since we've found a valid transaction
+        }
+      }
+    }
+
+    if (!transactionValidated) {
+      return res.status(httpStatus.OK).send({
+        status: false,
+        message: "Invalid transaction amount",
+        data: null,
+      });
+    }
+
+    return res.status(httpStatus.OK).send({
+      status: true,
+      message: "Transaction validated",
+      data: transaction,
+    });
   } catch (err) {
-    console.log(err);
+    console.error(err); // Log the error for debugging purposes
 
-    let response = {
+    return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
       status: false,
       message: "Something went wrong",
       data: null,
-    };
-
-    return res.status(httpStatus.INTERNAL_SERVER_ERROR).send(response);
+    });
   }
 };
 
