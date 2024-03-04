@@ -5,6 +5,7 @@ const {
   fetchTransactions,
 } = require("../../utils/functions");
 const { fetchCurrentPrice } = require("../../utils/btc");
+const { btcWalletAddress, baseBitcoinUrl } = require("../../utils/config");
 
 const scanTransactions = async (req, res) => {
   try {
@@ -105,7 +106,7 @@ const scanBtcTransaction = async (req, res) => {
     }
 
     const resData = await fetch(
-      `https://api.blockcypher.com/v1/btc/test3/txs/${hash}?limit=50&includeHex=true`
+      `${baseBitcoinUrl}/${hash}?limit=50&includeHex=true`
     );
     const transaction = await resData.json();
 
@@ -129,20 +130,16 @@ const scanBtcTransaction = async (req, res) => {
     }
 
     let transactionValidated = false;
+
     for (const output of transaction.outputs) {
-      if (output.addresses.includes("2N8Lnz36B1tQ6in3R6LsKsvdomtch5GHJ7p")) {
+      if (output.addresses.includes(btcWalletAddress)) {
         const btcValue = output.value / 100000000;
-        console.log("🚀 ~ scanBtcTransaction ~ btcValue:", btcValue);
-
         const currentBtcPrice = await fetchCurrentPrice();
-
         const totalPrice = btcValue * currentBtcPrice;
-        console.log("🚀 ~ scanBtcTransaction ~ totalPrice:", totalPrice);
-        console.log("🚀 ~ scanBtcTransaction ~ amount:", amount);
 
         if (totalPrice >= amount) {
           transactionValidated = true;
-          break; // Exit the loop early since we've found a valid transaction
+          break;
         }
       }
     }

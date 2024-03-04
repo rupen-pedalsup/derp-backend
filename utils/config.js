@@ -16,6 +16,12 @@ const config = {
   get unmarshalApiKey() {
     return process.env.UNMARSHAL_API_KEY;
   },
+  get baseBitcoinUrl() {
+    return process.env.BASE_BITCOIN_API;
+  },
+  get btcWalletAddress() {
+    return process.env.BTC_WALLET_ADDRESS;
+  },
   get sslPrivateKey() {
     return process.env.SSL_PRIV_KEY;
   },
