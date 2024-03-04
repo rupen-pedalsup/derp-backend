@@ -139,6 +139,15 @@ const scanBtcTransaction = async (req, res) => {
 
         if (totalPrice >= amount) {
           transactionValidated = true;
+
+          await User.findOneAndUpdate(
+            { address: req.params.address },
+            {
+              btcAddress,
+            },
+            { new: true }
+          );
+
           break;
         }
       }
